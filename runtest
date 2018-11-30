@@ -1,4 +1,4 @@
 #!/bin/bash
 source ../bin/activate
-source ../env
+source ./test_env
 ../bin/python runtest.py

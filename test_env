@@ -1,0 +1,4 @@
+export SLACK_BOT_TOKEN="test-token"
+export API_APP_ID="test-api-app-id"
+export BOT_ID="test-bot-id"
+export USER_ID="test-user-id"
