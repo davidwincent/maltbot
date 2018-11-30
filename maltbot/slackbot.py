@@ -68,3 +68,12 @@ def rtm_listen():
 def rtm_send(channel, message, thread=None, reply_broadcast=None):
     """Send message using rtm"""
     SLACK_CLIENT.rtm_send_message(channel, message, thread, reply_broadcast)
+
+
+def introduce(channel):
+    """Introduce self and set icon_emoji"""
+    SLACK_CLIENT.api_call("chat.postMessage",
+                          channel=channel,
+                          username="python",
+                          text="I python, therefor I am",
+                          icon_emoji=":beersdeluxe:")
