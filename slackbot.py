@@ -62,10 +62,10 @@ class Bot:
             text = parsed_text["text"]
         beer_url = beer(text)
         if beer_url:
-            response = beer_url
+            message = beer_url
         else:
-            response = self.pick_reaction.one()
-        self.rtm_send(event["channel"], response)
+            message = self.pick_reaction.one()
+        self.rtm_send(event["channel"], message)
 
     def __rtm_listen(self):
         """Listen to direct messages and mentions using rtm"""
@@ -84,6 +84,8 @@ class Bot:
 
     def rtm_send(self, channel, message, thread=None, reply_broadcast=None):
         """Send message using rtm"""
+        print(" ->", "channel=", channel, "message=", message, "thread=",
+              thread, "reply_broadcast=", reply_broadcast)
         self.bot_client.rtm_send_message(
             channel, message, thread, reply_broadcast)
 
