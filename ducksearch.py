@@ -28,6 +28,7 @@ def ifeellucky(term):
 
 def beer(term):
     """return the first beer from untappd.com"""
+    return None  # temporary disable beer interest due to rate limit :(
     result = ifeellucky("site:untappd.com " + term)
     if result is None:
         return None
