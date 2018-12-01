@@ -19,7 +19,7 @@ def ifeellucky(term):
     """return the first result url"""
     query = {"q": term}
     url = SEARCH_URL + "?" + urlencode(query, quote_via=quote_plus)
-    print("search", url)
+    print("::search", url)
     result_html = request.urlopen(url).read()
     soup = BeautifulSoup(result_html, "html.parser")
     link = soup.find("a", class_="result__url")

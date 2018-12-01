@@ -1,7 +1,8 @@
 """Maltbot (@python) is a bot"""
-import slackbot
+from slackbot import Bot
 
-# slackbot.introduce("#bots")
-# slackbot.introduce("#general")
-# slackbot.introduce("#vendeeglobe2020")
-slackbot.rtm_listen()
+VERSION = "alpha"
+BOT = Bot()
+
+print("Starting ("+VERSION+")")
+BOT.start()

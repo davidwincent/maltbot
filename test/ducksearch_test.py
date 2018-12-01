@@ -10,5 +10,5 @@ def test_beer_junglehaze_should_return_result():
     assert ducksearch.beer("jungle haze") is not None
 
 
-def test_beer_baileys_should_return_none():
-    assert ducksearch.beer("baileys") is None
+def test_beer_parishilton_should_return_none():
+    assert ducksearch.beer("paris hilton") is None
