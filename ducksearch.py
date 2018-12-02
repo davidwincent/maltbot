@@ -1,7 +1,6 @@
 """duckduckgo wrapper/html scraper"""
-from urllib import request
-from urllib.parse import urlencode, quote_plus, unquote
 from bs4 import BeautifulSoup
+from browser import HTTP, url_encode, url_decode, http_validate
 
 SEARCH_URL = "https://duckduckgo.com/html/"
 
@@ -12,15 +11,17 @@ def _parse_href(link):
     sep = link["href"].find("&uddg=")
     if sep == -1:
         return link["href"]
-    return unquote(link["href"][sep + 6:])
+    return url_decode(link["href"][sep + 6:])
 
 
 def ifeellucky(term):
     """return the first result url"""
     query = {"q": term}
-    url = SEARCH_URL + "?" + urlencode(query, quote_via=quote_plus)
+    url = SEARCH_URL + "?" + url_encode(query)
     print(" ->", "search=", url)
-    result_html = request.urlopen(url).read()
+    response = HTTP.request("GET", url)
+    http_validate(response)
+    result_html = response.data
     soup = BeautifulSoup(result_html, "html.parser")
     link = soup.find("a", class_="result__url")
     return _parse_href(link)
@@ -28,7 +29,6 @@ def ifeellucky(term):
 
 def beer(term):
     """return the first beer from untappd.com"""
-    return None  # temporary disable beer interest due to rate limit :(
     result = ifeellucky("site:untappd.com " + term)
     if result is None:
         return None

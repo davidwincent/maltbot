@@ -1,9 +1,11 @@
 """A slack bot"""
 import os
 import time
+from traceback import format_exc
 from slackclient import SlackClient
 from ducksearch import beer
 from pick import Pick
+from browser import HttpError
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 BOT_OAUTH_TOKEN = os.environ["BOT_OAUTH_TOKEN"]
@@ -40,17 +42,21 @@ class Bot:
         if not events:
             return
         for event in events:
-            print(">>>", event)
-            if "hidden" in event:
-                continue
-            if "subtype" in event:
-                continue
-            if ("type" in event
-                    and event["type"] == "message"
-                    and "text" in event
-                    and "channel" in event):
-                self.__text_message(event)
-            print("")
+            try:
+                print(">>>", event)
+                if "hidden" in event:
+                    continue
+                if "subtype" in event:
+                    continue
+                if "channel" in event:
+                    channel = event["channel"]
+                if ("type" in event
+                        and event["type"] == "message"
+                        and "text" in event):
+                    self.__text_message(event)
+                print("")
+            except Exception as error:
+                self.__handle_error(error, channel)
 
     def __text_message(self, event):
         if event["channel"].startswith("D"):
@@ -60,11 +66,15 @@ class Bot:
             if not "self_mention" in parsed_text:
                 return
             text = parsed_text["text"]
-        beer_url = beer(text)
-        if beer_url:
-            message = beer_url
-        else:
-            message = self.pick_reaction.one()
+        try:
+            beer_url = beer(text)
+            if beer_url:
+                message = beer_url
+        except HttpError:
+            message = "För mycket :beersdeluxe:"
+        if not message:
+            message = ":%(reaction)s:" % {
+                "reaction": self.pick_reaction.one()}
         self.rtm_send(event["channel"], message)
 
     def __rtm_listen(self):
@@ -75,12 +85,32 @@ class Bot:
                 self.__parse_events(self.bot_client.rtm_read())
                 time.sleep(1)
         else:
-            print("Connection Failed")
+            raise Exception("Connection Failed")
+
+    def __handle_error(self, error, channel=None):
+        exc = format_exc()
+        print(" [[EXCEPTION]]", error)
+        print(exc)
+        print("")
+        if not channel:
+            return
+        stack_trace = {
+            "text": "```%(error)s: %(exc)s```" % {
+                "error": error,
+                "exc": exc}}
+        self.bot_client.api_call("chat.postMessage",
+                                 channel=channel,
+                                 text=":scream:",
+                                 attachments=[stack_trace])
 
     def start(self):
         """start chatbot"""
-        self.pick_reaction = Pick(self.list_custom_emojis(), max_repeat=7)
-        self.__rtm_listen()
+        try:
+            # beer("debug")
+            self.pick_reaction = Pick(self.list_custom_emojis(), max_repeat=7)
+            self.__rtm_listen()
+        except Exception as error:
+            self.__handle_error(error)
 
     def rtm_send(self, channel, message, thread=None, reply_broadcast=None):
         """Send message using rtm"""
@@ -100,6 +130,4 @@ class Bot:
         """Return a list of custom emojis in the workspace"""
         result = self.oauth_client.api_call("emoji.list")
         _validate_result(result)
-        return list(
-            map(lambda k: ":" + k + ":",
-                result["emoji"].keys()))
+        return list(result["emoji"].keys())
