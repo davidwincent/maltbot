@@ -5,7 +5,7 @@ _maltbot_ is a slack bot with different interests, including :beer:
 ### setup on Linux or Darwin
 Install Python 3.5 or later - https://www.python.org/
 
-`$ [sudo] pip install virtualenv`
+`$ [sudo] pip[3] install virtualenv`
 
 `$ virtualenv PYMALT`
 
