@@ -8,6 +8,7 @@ from ducksearch import beer
 from pick import Pick
 from browser import HttpError
 
+RECONNECT_TRIES = 10
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 BOT_OAUTH_TOKEN = os.environ["BOT_OAUTH_TOKEN"]
 BOT_TAG = "<@" + os.environ["BOT_USER_ID"] + ">"
@@ -82,12 +83,21 @@ class Bot:
     def __rtm_listen(self):
         """Listen to direct messages and mentions using rtm"""
 
-        if self.bot_client.rtm_connect():
-            while self.bot_client.server.connected is True:
-                self.__parse_events(self.bot_client.rtm_read())
-                time.sleep(1)
-        else:
-            raise Exception("Connection Failed")
+        reconnect_count = 0
+        while reconnect_count < RECONNECT_TRIES:
+            if self.bot_client.rtm_connect():
+                while self.bot_client.server.connected is True:
+                    try:
+                        events = self.bot_client.rtm_read()
+                    except TimeoutError as timeout_error:
+                        self.__handle_error(timeout_error)
+                        reconnect_count = 0
+                    self.__parse_events(events)
+                    time.sleep(1)
+            else:
+                raise Exception("Connection Failed")
+            time.sleep(10)
+            reconnect_count += 1
 
     def __handle_error(self, error, channel=None):
         exc = format_exc()
