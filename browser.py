@@ -1,11 +1,17 @@
 """browse the world wide web and multimedia"""
+import os
 from urllib.parse import urlencode, quote_plus, unquote
+from urllib3.contrib.socks import SOCKSProxyManager
 import urllib3
 import certifi
+
+SOCKS_PROXY = os.environ["SOCKS_PROXY"]
+
 HTTP = urllib3.PoolManager(
     num_pools=50,
     cert_reqs="CERT_REQUIRED",
     ca_certs=certifi.where())
+PROXY = SOCKSProxyManager(SOCKS_PROXY)
 
 
 def url_encode(value):

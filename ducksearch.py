@@ -1,6 +1,6 @@
 """duckduckgo wrapper/html scraper"""
 from bs4 import BeautifulSoup
-from browser import HTTP, url_encode, url_decode, http_validate
+from browser import PROXY, url_encode, url_decode, http_validate
 
 SEARCH_URL = "https://duckduckgo.com/html/"
 
@@ -19,7 +19,7 @@ def ifeellucky(term):
     query = {"q": term}
     url = SEARCH_URL + "?" + url_encode(query)
     print(" ->", "search=", url)
-    response = HTTP.request("GET", url)
+    response = PROXY.request("GET", url)
     http_validate(response)
     result_html = response.data
     soup = BeautifulSoup(result_html, "html.parser")
