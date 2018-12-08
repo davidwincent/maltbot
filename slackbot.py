@@ -17,7 +17,7 @@ BOT_TAG = "<@" + os.environ["BOT_USER_ID"] + ">"
 def _parse_text(text):
     if not text:
         return {"text": ""}
-    if text.startswith(BOT_TAG):
+    if (text.startswith(BOT_TAG)) and (len(text) > len(BOT_TAG)):
         return {"self_question": True, "text": text[len(BOT_TAG):].strip()}
     if BOT_TAG in text:
         return {"self_mention": True, "text": text.strip()}
@@ -74,10 +74,12 @@ class Bot:
                 beer_url = beer(text)
                 if beer_url:
                     message = beer_url
+                else:
+                    message = "Ingen :beersdeluxe:"
             except HttpError as http_error:
                 self.__handle_error(http_error, channel="CEG4LEXJN")
                 message = "För mycket tor :beersdeluxe:"
-        if ("self_mention" in parsed_text or not message):
+        if "self_mention" in parsed_text:
             message = ":%(reaction)s:" % {
                 "reaction": self.pick_reaction.one()}
         if not message:
