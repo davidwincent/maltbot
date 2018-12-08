@@ -18,7 +18,9 @@ def _parse_text(text):
     if not text:
         return {"text": ""}
     if text.startswith(BOT_TAG):
-        return {"self_mention": True, "text": text[len(BOT_TAG):].strip()}
+        return {"self_question": True, "text": text[len(BOT_TAG):].strip()}
+    if BOT_TAG in text:
+        return {"self_mention": True, "text": text.strip()}
     return {"text": text.strip()}
 
 
@@ -65,19 +67,21 @@ class Bot:
             text = event["text"]
         else:
             parsed_text = _parse_text(event["text"])
-            if not "self_mention" in parsed_text:
-                return
             text = parsed_text["text"]
-        try:
-            beer_url = beer(text)
-            if beer_url:
-                message = beer_url
-        except HttpError as http_error:
-            self.__handle_error(http_error, channel="CEG4LEXJN")
-            message = "För mycket :beersdeluxe:"
-        if not message:
+        message = None
+        if (text) and ("self_question" in parsed_text):
+            try:
+                beer_url = beer(text)
+                if beer_url:
+                    message = beer_url
+            except HttpError as http_error:
+                self.__handle_error(http_error, channel="CEG4LEXJN")
+                message = "För mycket tor :beersdeluxe:"
+        if ("self_mention" in parsed_text or not message):
             message = ":%(reaction)s:" % {
                 "reaction": self.pick_reaction.one()}
+        if not message:
+            return
         self.rtm_send(event["channel"], message)
 
     def __rtm_listen(self):
@@ -130,11 +134,17 @@ class Bot:
             self.__handle_error(error, channel="CEG4LEXJN")
 
     def rtm_send(self, channel, message, thread=None, reply_broadcast=None):
-        """Send message using rtm"""
+        """send message using rtm"""
         print(" ->", "channel=", channel, "message=", message, "thread=",
               thread, "reply_broadcast=", reply_broadcast)
         self.bot_client.rtm_send_message(
             channel, message, thread, reply_broadcast)
+
+#    def rtm_typing(self, channel):
+#        """send typing indication using rtm (not currently supported by python
+#        client)"""
+#        print(" ->", "typing")
+#        self.bot_client.rtm_send_message(channel, None, _type="typing")
 
     def introduce(self, channel):
         """Introduce self and set icon_emoji"""

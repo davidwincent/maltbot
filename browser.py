@@ -11,7 +11,11 @@ HTTP = urllib3.PoolManager(
     num_pools=50,
     cert_reqs="CERT_REQUIRED",
     ca_certs=certifi.where())
-PROXY = SOCKSProxyManager(SOCKS_PROXY)
+PROXY = SOCKSProxyManager(
+    SOCKS_PROXY,
+    num_pools=50,
+    cert_reqs="CERT_REQUIRED",
+    ca_certs=certifi.where())
 
 
 def url_encode(value):
