@@ -1,4 +1,5 @@
 """A slack bot"""
+# pylint: disable=broad-except
 import os
 import time
 from traceback import format_exc
@@ -70,7 +71,8 @@ class Bot:
             beer_url = beer(text)
             if beer_url:
                 message = beer_url
-        except HttpError:
+        except HttpError as http_error:
+            self.__handle_error(http_error, channel="CEG4LEXJN")
             message = "För mycket :beersdeluxe:"
         if not message:
             message = ":%(reaction)s:" % {
@@ -94,14 +96,19 @@ class Bot:
         print("")
         if not channel:
             return
-        stack_trace = {
-            "text": "```%(error)s: %(exc)s```" % {
-                "error": error,
-                "exc": exc}}
-        self.bot_client.api_call("chat.postMessage",
-                                 channel=channel,
-                                 text=":scream:",
-                                 attachments=[stack_trace])
+        try:
+            stack_trace = {
+                "text": "```%(error)s: %(exc)s```" % {
+                    "error": error,
+                    "exc": exc}}
+            self.bot_client.api_call("chat.postMessage",
+                                     channel=channel,
+                                     text=":scream:",
+                                     attachments=[stack_trace])
+        except Exception as io_error:
+            print(" [[IO_EXCEPTION]]", error)
+            print(io_error)
+            print("")
 
     def start(self):
         """start chatbot"""
@@ -110,7 +117,7 @@ class Bot:
             self.pick_reaction = Pick(self.list_custom_emojis(), max_repeat=7)
             self.__rtm_listen()
         except Exception as error:
-            self.__handle_error(error)
+            self.__handle_error(error, channel="CEG4LEXJN")
 
     def rtm_send(self, channel, message, thread=None, reply_broadcast=None):
         """Send message using rtm"""
