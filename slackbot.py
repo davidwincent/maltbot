@@ -75,7 +75,7 @@ class Bot:
                 if beer_url:
                     message = beer_url
                 else:
-                    message = "Ingen :beersdeluxe:"
+                    message = "https://http.cat/404"
             except HttpError as http_error:
                 self.__handle_error(http_error, channel="CEG4LEXJN")
                 message = "För mycket tor :beersdeluxe:"
@@ -91,19 +91,21 @@ class Bot:
 
         reconnect_count = 0
         while reconnect_count < RECONNECT_TRIES:
-            if self.bot_client.rtm_connect():
+            if self.bot_client.rtm_connect(auto_reconnect=True):
                 while self.bot_client.server.connected is True:
                     try:
                         events = self.bot_client.rtm_read()
-                    except TimeoutError as timeout_error:
-                        self.__handle_error(timeout_error)
+                    except Exception as rtm_error:
+                        self.__handle_error(rtm_error, channel="CEG4LEXJN")
                         reconnect_count = 0
+                        break
                     self.__parse_events(events)
                     time.sleep(1)
             else:
                 raise Exception("Connection Failed")
             time.sleep(10)
             reconnect_count += 1
+            print(" [[RTM ERROR]] retrying connection", reconnect_count)
 
     def __handle_error(self, error, channel=None):
         exc = format_exc()
